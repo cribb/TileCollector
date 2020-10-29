@@ -1,0 +1,10 @@
+[Hill Video Tracking Scope, Marsico 7101]
+Magnification, Multiplier, [um/pixel], [pixel/um], Camera, ImageWidthxHeight
+4x,  1x,   1.204,  0.831, Flea3, 1280x1024
+4x,  1.5x, 0.8050, 1.242, Flea3, 1280x1024
+10x, 1x,   0.4082, 2.082, Flea3, 1280x1024
+10x, 1.5x, 0.3208, 3.117, Flea3, 1280x1024
+20x, 1x,   0.2420, 4.133, Flea3, 1280x1024
+20x, 1.5x, 0.1612, 6.202, Flea3, 1280x1024
+40x, 1x,   0.1190, 8.404, Flea3, 1280x1024
+40x, 1.5x, 0.0794, 12.60, Flea3, 1280x1024
