@@ -1,14 +1,25 @@
-function [mosaic,T] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
+function [MosaicTable, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
 % TC_MANUALMOSAIC collects a set of mosaic images and outputs them.
 %
-% [mosaic,T] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
+% [MosaicTable, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
 % 
 % Inputs
 %    - ludl: Handle to Ludl (run "ludl = stage_open_Ludl('COM3', 'BioPrecision2-LE2_Ludl5000')"
 %    - calibum: length scale in [um] for 1 pixel, e.g. 0.150 [um/pixel]
 %    - XLim: 2-element vector denoting X-Limits in [mm], e.g. [-2 2] moves
-%      two mm to the left and collects through 2 mm to the right
-%          
+%      two mm to the left and collects through 2 mm to the right.
+%    - YLim: 2-element vector denoting Y-Limits in [mm], e.g. [-2 2] moves
+%      two mm up and collects through 2 mm down.
+%    - OverlapFactor: Defines the effective frame size. An OverlapFactor of
+%      "0.1" means that 10% of each image in X and Y will overlap with the
+%      next-most image to the right and below.
+%    - FileOut: filename for the outputted MosaicTable
+%
+% Outputs
+%    - MosaicTable: same as the saved MosaicTable in the output file.
+%    - TiledImage: rudimentary assembled tiled mosaic image-matrix with no
+%      attempt to stitch the images together via cross-correlation.
+
 
 % Need to know the calibum and the desired overlap factor [0,0.5] as
 % inputs in order to design the collection grid, ASSUMING the starting
@@ -130,21 +141,29 @@ function [mosaic,T] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, 
     close(f);
     ludl = stage_move_Ludl(ludl, OrigPosition);
     
-    mosaic = table(PrescribedXY, ArrivedXY, Image);
-    save(FileOut, 'mosaic');
+    MosaicTable = table(PrescribedXY, ArrivedXY, Image);
     
-    im = mosaic.Image;
+    m.MosaicTable = MosaicTable;
+    m.MosaicSizeRC = fliplr(Nxy);
+    m.LengthScale = calibum;
+    m.OverlapFactor = OverlapFactor;
+    m.XLim = XLim;
+    m.YLim = YLim;
+    
+    save(FileOut, '-STRUCT', 'm');
+    
+    im = MosaicTable.Image;
     imR = reshape(im, Nxy(2), Nxy(1));
-    T = imtile(imR, 'GridSize', [Nxy(2), Nxy(1)]);
+    TiledImage = imtile(imR, 'GridSize', [Nxy(2), Nxy(1)]);
 
-%     imXax = linspace(min(Xmat(:)),max(Xmat(:))+imageSize_mm(1),size(T,2));    
+    %     imXax = linspace(min(Xmat(:)),max(Xmat(:))+imageSize_mm(1),size(T,2));    
 %     imYax = linspace(min(Ymat(:)),max(Ymat(:))+imageSize_mm(2),size(T,1));
 
-    imXax = [0:size(T,2)-1] .* calibum/1e3;
-    imYax = [0:size(T,1)-1] .* calibum/1e3;
+    imXax = [0:size(TiledImage,2)-1] .* calibum/1e3;
+    imYax = [0:size(TiledImage,1)-1] .* calibum/1e3;
     
     figure; 
-    imagesc(imXax, imYax, T);  %#ok<NBRAK>
+    imagesc(imXax, imYax, TiledImage);  %#ok<NBRAK>
     axis image;
     xlabel('[mm]'); 
     ylabel('[mm]'); 
