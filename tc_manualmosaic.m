@@ -1,7 +1,7 @@
-function [MosaicTable, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
+function [Mosaic, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
 % TC_MANUALMOSAIC collects a set of mosaic images and outputs them.
 %
-% [MosaicTable, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
+% [Mosaic, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
 % 
 % Inputs
 %    - ludl: Handle to Ludl (run "ludl = stage_open_Ludl('COM3', 'BioPrecision2-LE2_Ludl5000')"
@@ -141,33 +141,17 @@ function [MosaicTable, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, 
     close(f);
     ludl = stage_move_Ludl(ludl, OrigPosition);
     
-    MosaicTable = table(PrescribedXY, ArrivedXY, Image);
+    Mosaic.MosaicTable = table(PrescribedXY, ArrivedXY, Image);
+    Mosaic.MosaicSizeRC = fliplr(Nxy);
+    Mosaic.LengthScale = calibum;
+    Mosaic.OverlapFactor = OverlapFactor;
+    Mosaic.XLim = XLim;
+    Mosaic.YLim = YLim;
     
-    m.MosaicTable = MosaicTable;
-    m.MosaicSizeRC = fliplr(Nxy);
-    m.LengthScale = calibum;
-    m.OverlapFactor = OverlapFactor;
-    m.XLim = XLim;
-    m.YLim = YLim;
+    save(FileOut, '-STRUCT', 'Mosaic');
     
-    save(FileOut, '-STRUCT', 'm');
-    
-    im = MosaicTable.Image;
-    imR = reshape(im, Nxy(2), Nxy(1));
-    TiledImage = imtile(imR, 'GridSize', [Nxy(2), Nxy(1)]);
-
-    %     imXax = linspace(min(Xmat(:)),max(Xmat(:))+imageSize_mm(1),size(T,2));    
-%     imYax = linspace(min(Ymat(:)),max(Ymat(:))+imageSize_mm(2),size(T,1));
-
-    imXax = [0:size(TiledImage,2)-1] .* calibum/1e3;
-    imYax = [0:size(TiledImage,1)-1] .* calibum/1e3;
-    
-    figure; 
-    imagesc(imXax, imYax, TiledImage);  %#ok<NBRAK>
-    axis image;
-    xlabel('[mm]'); 
-    ylabel('[mm]'); 
-    colormap(gray);
+    % Plot the assembled mosaic into a new figure
+    tc_show_mosaic(m);
     
     logentry('Done!');
 
