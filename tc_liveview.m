@@ -18,13 +18,17 @@ stdD = num2str(stdD, '%u');
 maxD = num2str(maxD, '%u');
 minD = num2str(minD, '%u');
 
-
 title([avgD, ' \pm ', stdD, ' [', minD ', ', maxD, ']']);
 
 a = ancestor(hImage, 'axes');
 
 cmin = min(double(hImage.CData(:)));
 cmax = max(double(hImage.CData(:)));
+
+if cmin == cmax
+    cmin = cmax - 1;
+end
+
 set(a, 'CLim', [uint16(cmin) uint16(cmax)]);
 
 return
