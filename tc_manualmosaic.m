@@ -1,10 +1,11 @@
-function [Mosaic, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
+function [Mosaic, TiledImage] = tc_manualmosaic(ludl, exptime, calibum, XLim, YLim, OverlapFactor, FileOut)
 % TC_MANUALMOSAIC collects a set of mosaic images and outputs them.
 %
-% [Mosaic, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, OverlapFactor, FileOut)
+% [Mosaic, TiledImage] = tc_manualmosaic(ludl, exptime, calibum, XLim, YLim, OverlapFactor, FileOut)
 % 
 % Inputs
 %    - ludl: Handle to Ludl (run "ludl = stage_open_Ludl('COM3', 'BioPrecision2-LE2_Ludl5000')"
+%    - exptime: Exposure time [ms]
 %    - calibum: length scale in [um] for 1 pixel, e.g. 0.150 [um/pixel]
 %    - XLim: 2-element vector denoting X-Limits in [mm], e.g. [-2 2] moves
 %      two mm to the left and collects through 2 mm to the right.
@@ -24,17 +25,24 @@ function [Mosaic, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, Overl
 % Need to know the calibum and the desired overlap factor [0,0.5] as
 % inputs in order to design the collection grid, ASSUMING the starting
 % position will be in the center of the sample "well."
-
+    if nargin < 1 || isempty(ludl)
+        error('Need handle to ludl stage. Run stage_open_ludl.');
+    end
+        
+    if nargin < 2 || isempty(exptime)
+        exptime = 10;
+    end
+    
+    
     % The stage is already setup as an argument, so start by storing ints
     % "original" position.
     ludl = stage_get_pos_Ludl(ludl);
     OrigPosition = ludl.Pos;
 
-
     % Camera Setup
     CameraName = 'Flea3';
     CameraFormat = 'F7_Mono8_1280x1024_Mode0';
-    ExposureTime = 10;
+    ExposureTime = exptime;
     Video = flir_config_video(CameraName, CameraFormat, ExposureTime);
     [cam, src] = flir_camera_open(Video);    
     
@@ -141,17 +149,21 @@ function [Mosaic, TiledImage] = tc_manualmosaic(ludl, calibum, XLim, YLim, Overl
     close(f);
     ludl = stage_move_Ludl(ludl, OrigPosition);
     
-    Mosaic.MosaicTable = table(PrescribedXY, ArrivedXY, Image);
-    Mosaic.MosaicSizeRC = fliplr(Nxy);
     Mosaic.LengthScale = calibum;
     Mosaic.OverlapFactor = OverlapFactor;
+    Mosaic.SizeRC = fliplr(Nxy);
     Mosaic.XLim = XLim;
     Mosaic.YLim = YLim;
-    
-    save(FileOut, '-STRUCT', 'Mosaic');
+    Mosaic.PrescribedXY = PrescribedXY;
+    Mosaic.ArrivedXY = ArrivedXY;
+    Mosaic.ImageTiles = Image;
+        
+    if ~isempty(FileOut)
+        save(FileOut, '-STRUCT', 'Mosaic');
+    end
     
     % Plot the assembled mosaic into a new figure
-    tc_show_mosaic(m);
+%     tc_show_mosaic(m);
     
     logentry('Done!');
 
