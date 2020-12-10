@@ -80,7 +80,7 @@ function mosaic = tc_grabmosaic(ludl, cal, wellrc, fileout)
     close(f);
 
     mosaic = table(PrescribedXY, ArrivedXY, Image);
-    save(fileout, 'mosaic')
+    save(fileout, 'mosaic','-v7.3', '-nocompression');
     logentry('Done!');
 
 return
