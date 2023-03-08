@@ -57,13 +57,14 @@ handles.output = hObject;
 
 % Load instrument configuration. This is hardcoded for now, but needs to be
 % and option, maybe set in a menu item in the future.
-handles.Instrument = hill_scope_config;
+handles.Instrument = artemis_scope_config;
 handles.scope = scope_open(handles.Instrument.Scope.Comport);
 handles.ludl  = stage_open_Ludl(handles.Instrument.Stage.ComPort, ...
                                 handles.Instrument.Stage.Name);
                             
 % Pull the current values and set them as the session's default starting value                            
-CurrentObjective = scope_get_nosepiece(handles.scope);
+% CurrentObjective = scope_get_nosepiece(handles.scope);
+CurrentObjective = 1;
 CurrentOpticalPath = scope_get_op_path(handles.scope);
 CurrentFilterCube = scope_get_filterblock(handles.scope);
 CurrentFocus = scope_get_focus(handles.scope);
@@ -129,7 +130,7 @@ function popup_objectives_Callback(hObject, eventdata, handles)
 
     logentry(['Setting Magnification to ' SelectedObjective '.']);
 
-    scope_set_nosepiece(handles.scope, Value);
+%     scope_set_nosepiece(handles.scope, Value);
     
     mag = regexp(SelectedObjective, '(\d*)X', 'tokens');
     mag = mag{1}{1};
@@ -483,7 +484,9 @@ function pushbutton_showpreview_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     if ~isfield(handles, 'previewFigure') || ~isvalid(handles.previewFigure)
-        handles.previewFigure = vid_impreview;
+        hwhand.scope = handles.scope;
+        hwhand.ludl = handles.ludl;
+        handles.previewFigure = vid_impreview(hwhand,[],@vid_livehist);
         guidata(hObject, handles);
     end
     

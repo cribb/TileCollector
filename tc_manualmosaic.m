@@ -40,8 +40,8 @@ function [Mosaic, TiledImage] = tc_manualmosaic(ludl, exptime, calibum, XLim, YL
     OrigPosition = ludl.Pos;
 
     % Camera Setup
-    CameraName = 'Flea3';
-    CameraFormat = 'F7_Mono8_1280x1024_Mode0';
+    CameraName = 'Grasshopper3';
+    CameraFormat = 'F7_Raw16_1024x768_Mode2';
     ExposureTime = exptime;
     Video = flir_config_video(CameraName, CameraFormat, ExposureTime);
     [cam, src] = flir_camera_open(Video);    
@@ -81,7 +81,7 @@ function [Mosaic, TiledImage] = tc_manualmosaic(ludl, exptime, calibum, XLim, YL
     
     Xmat = (Nmat - 1) .* EffVidSize_mm(1) + XLim(1) - OverageXY(1)/2;
     Ymat = (Mmat - 1) .* EffVidSize_mm(2) + YLim(1) - OverageXY(2)/2;
-    Ymat = flipud(Ymat);
+%     Ymat = flipud(Ymat);
     
     % Tranpose the matrices because we want to transit across X first, i.e.
     % a typicsl raster scan pattern, and then linearize the matrices to get 
@@ -96,8 +96,10 @@ function [Mosaic, TiledImage] = tc_manualmosaic(ludl, exptime, calibum, XLim, YL
     Ycoords_ticks = mm2tick(ludl, Ycoords_mm);
     
     % Xpos and Ypos are the destination coordinates for the ludl stage in ticks
-    Xpos = OrigPosition(1) + int64(Xcoords_ticks);
-    Ypos = OrigPosition(2) + int64(Ycoords_ticks);
+%     Xpos = OrigPosition(1) + int64(Xcoords_ticks);
+%     Ypos = OrigPosition(2) + int64(Ycoords_ticks);
+    Xpos = OrigPosition(1) - int64(Ycoords_ticks);
+    Ypos = OrigPosition(2) + int64(Xcoords_ticks);
     
     
     % ----------------
